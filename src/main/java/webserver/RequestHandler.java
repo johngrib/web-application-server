@@ -1,10 +1,8 @@
 package webserver;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,14 +21,41 @@ public class RequestHandler extends Thread {
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-            DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = "Hello World".getBytes();
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+
+            final BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            final String line = br.readLine();
+
+            if(line == null) {
+                return;
+            }
+
+            final String url = getUrl(line);
+
+            final byte[] resultBody = Files.readAllBytes(new File("./webapp" + url).toPath());
+
+            log.debug("request line: {}", line);
+
+            final DataOutputStream dos = new DataOutputStream(out);
+
+            response200Header(dos, resultBody.length);
+            responseBody(dos, resultBody);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    String getUrl(final String requestLine) {
+        if(requestLine == null) {
+            return "";
+        }
+
+        final String[] strs = requestLine.split("\\s");
+
+        if(strs.length < 2) {
+            return "";
+        }
+
+        return strs[1];
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
