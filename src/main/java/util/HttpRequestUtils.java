@@ -1,6 +1,10 @@
 package util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,6 +83,27 @@ public class HttpRequestUtils {
 
     public static Pair parseHeader(String header) {
         return getKeyValue(header, ": ");
+    }
+
+    public List<String> getRequestLineList(final BufferedReader br, final String line) throws IOException {
+        final List<String> requestLineList = new LinkedList<>();
+
+        String tempLine = line;
+        while( ! tempLine.equals("")) {
+            tempLine = br.readLine();
+            requestLineList.add(tempLine);
+        }
+        return requestLineList;
+    }
+
+    public int getRequestContentsLength(final List<String> requestLineList) {
+        final String lengthStr = requestLineList.stream()
+                .filter(l -> l.matches("Content-Length\\s*:\\s*(?:\\d+)"))
+                .findFirst()
+                .get()
+                ;
+        final int length = Integer.parseInt(lengthStr.split("\\s*:\\s*")[1]);
+        return length;
     }
 
     public static class Pair {

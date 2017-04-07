@@ -4,12 +4,14 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -35,20 +37,23 @@ public class RequestHandler extends Thread {
             }
 
             final String url = requestUtils.getUrl(line);
-
-            log.debug("url : {}", url);
-
             final String decoded = URLDecoder.decode(url, "UTF-8");
             log.debug("url : {}", decoded);
 
+            final List<String> requestLineList = requestUtils.getRequestLineList(br, line);
+
             // 회원가입인 경우
             if(url.startsWith("/user/create")) {
-                final Map<String, String> params = requestUtils.parseQueryString(url);
+                final int contentLength = requestUtils.getRequestContentsLength(requestLineList);
+                final String body = IOUtils.readData(br, contentLength);
+                final Map<String, String> params = requestUtils.parseQueryString(body);
+
                 final String userId = params.get("userId");
                 final String password = params.get("password");
                 final String name = params.get("name");
                 final String email = params.get("email");
                 final User newUser = new User(userId, password, name, email);
+                log.debug("new user : {}", newUser);
             }
 
             final byte[] resultBody = Files.readAllBytes(new File("./webapp" + url).toPath());
