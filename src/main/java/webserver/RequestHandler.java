@@ -2,10 +2,14 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.util.Map;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -22,6 +26,7 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 
+            final HttpRequestUtils requestUtils = new HttpRequestUtils();
             final BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             final String line = br.readLine();
 
@@ -29,7 +34,22 @@ public class RequestHandler extends Thread {
                 return;
             }
 
-            final String url = getUrl(line);
+            final String url = requestUtils.getUrl(line);
+
+            log.debug("url : {}", url);
+
+            final String decoded = URLDecoder.decode(url, "UTF-8");
+            log.debug("url : {}", decoded);
+
+            // 회원가입인 경우
+            if(url.startsWith("/user/create")) {
+                final Map<String, String> params = requestUtils.parseQueryString(url);
+                final String userId = params.get("userId");
+                final String password = params.get("password");
+                final String name = params.get("name");
+                final String email = params.get("email");
+                final User newUser = new User(userId, password, name, email);
+            }
 
             final byte[] resultBody = Files.readAllBytes(new File("./webapp" + url).toPath());
 
@@ -42,20 +62,6 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-    }
-
-    String getUrl(final String requestLine) {
-        if(requestLine == null) {
-            return "";
-        }
-
-        final String[] strs = requestLine.split("\\s");
-
-        if(strs.length < 2) {
-            return "";
-        }
-
-        return strs[1];
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
