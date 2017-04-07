@@ -54,6 +54,9 @@ public class RequestHandler extends Thread {
                 final String email = params.get("email");
                 final User newUser = new User(userId, password, name, email);
                 log.debug("new user : {}", newUser);
+                final DataOutputStream dos = new DataOutputStream(out);
+                response302Header(dos, "/index.html");
+                return;
             }
 
             final byte[] resultBody = Files.readAllBytes(new File("./webapp" + url).toPath());
@@ -74,6 +77,16 @@ public class RequestHandler extends Thread {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302Header(final DataOutputStream dos, final String url) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: " + url + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
