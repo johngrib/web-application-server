@@ -21,10 +21,13 @@ public class RequestMap {
     private final static String CHARSET = "UTF-8";
     public final InputStream is;
     public final OutputStream out;
+    public final Map<String, String> headerParam;
 
-    public RequestMap(final Map<String, String> getParam, final Map<String, String> postParam, final String url, final InputStream is, final OutputStream out) {
+    public RequestMap(final Map<String, String> getParam, final Map<String, String> postParam,
+                      Map<String, String> headerParam, final String url, final InputStream is, final OutputStream out) {
         this.getParam = Collections.unmodifiableMap(getParam);
         this.postParam = Collections.unmodifiableMap(postParam);
+        this.headerParam = Collections.unmodifiableMap(headerParam);
         this.url = url;
         this.fullUrl = null;
         this.is = is;
@@ -50,12 +53,13 @@ public class RequestMap {
 
             final Map<String, String> getParam = Collections.unmodifiableMap(HttpRequestUtils.parseQueryString(fullUrl));
             final Map<String, String> postParam = Collections.unmodifiableMap(HttpRequestUtils.parseQueryString(body));
+            final Map<String, String> headerParam = Collections.unmodifiableMap(HttpRequestUtils.getHeaderMap(requestLineList));
 
             log.debug("url : {}", url);
             log.debug("fullUrl : {}", fullUrl);
             log.debug("body : {}", body);
 
-            return new RequestMap(getParam, postParam, url, is, out);
+            return new RequestMap(getParam, postParam, headerParam, url, is, out);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

@@ -79,12 +79,13 @@ public class ResponseMap {
         return this;
     }
 
-    public void forwardBody(final String body) {
+    public ResponseMap forwardBody(final String body) {
         final byte[] bodyString = body.getBytes();
         headerMap.put("Content-Type", contentMap.get(DEFAULT_TYPE));
         headerMap.put("Content-Length", String.valueOf(bodyString.length));
         responseOkay();
         responseBody(bodyString);
+        return this;
     }
 
     private void responseOkay() {

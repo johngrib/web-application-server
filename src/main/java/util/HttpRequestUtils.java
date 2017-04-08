@@ -2,10 +2,7 @@ package util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -128,6 +125,23 @@ public class HttpRequestUtils {
                 ;
         final int length = Integer.parseInt(lengthStr.split("\\s*:\\s*")[1]);
         return length;
+    }
+
+    /**
+     * header Map 을 리턴한다. Cookie 값 등이 들어있다.
+     * @param requestLineList
+     * @return
+     */
+    public static Map<String, String> getHeaderMap(final List<String> requestLineList) {
+
+        final Map<String, String> header = new HashMap<>();
+
+        requestLineList.stream()
+                .map(line -> line.split(":"))
+                .filter(strs -> strs != null && strs.length > 1)
+                .forEach(arr -> header.put(arr[0], arr[1].trim()));
+
+        return header;
     }
 
     /**
