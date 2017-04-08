@@ -7,7 +7,8 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
-import model.User;
+import config.Config;
+import model.ResponseMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -17,6 +18,7 @@ public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     private Socket connection;
+    final static String CHARSET = "UTF-8";
 
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
@@ -29,37 +31,33 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 
             final HttpRequestUtils requestUtils = new HttpRequestUtils();
-            final BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            final BufferedReader br = new BufferedReader(new InputStreamReader(in, CHARSET));
             final String line = br.readLine();
 
             if(line == null) {
                 return;
             }
 
-            final String url = requestUtils.getUrl(line);
-            final String decoded = URLDecoder.decode(url, "UTF-8");
-            log.debug("url : {}", decoded);
+            final String url = URLDecoder.decode(requestUtils.getUrl(line), CHARSET);
+            final String fullUrl = URLDecoder.decode(requestUtils.getFullUrl(line), CHARSET);
+
+            log.debug("line : {}", line);
+            log.debug("url : {}", fullUrl);
 
             final List<String> requestLineList = requestUtils.getRequestLineList(br, line);
 
-            // 회원가입인 경우
-            if(url.startsWith("/user/create")) {
-                final int contentLength = requestUtils.getRequestContentsLength(requestLineList);
-                final String body = IOUtils.readData(br, contentLength);
-                final Map<String, String> params = requestUtils.parseQueryString(body);
+            final String body = URLDecoder.decode(requestUtils.getBody(requestUtils, br, requestLineList), CHARSET);
+            final Map<String, String> getParams = requestUtils.parseQueryString(fullUrl);
+            final Map<String, String> postParams = requestUtils.parseQueryString(body);
 
-                final String userId = params.get("userId");
-                final String password = params.get("password");
-                final String name = params.get("name");
-                final String email = params.get("email");
-                final User newUser = new User(userId, password, name, email);
-                log.debug("new user : {}", newUser);
+            final ResponseMap res = ControllerRegister.get(url).execute(getParams, postParams);
+            if(res.redirect != null) {
                 final DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos, "/index.html");
+                response302Header(dos, res.redirect);
                 return;
             }
 
-            final byte[] resultBody = Files.readAllBytes(new File("./webapp" + url).toPath());
+            final byte[] resultBody = Files.readAllBytes(new File(Config.WEBAPP_ADDR + url).toPath());
 
             log.debug("request line: {}", line);
 

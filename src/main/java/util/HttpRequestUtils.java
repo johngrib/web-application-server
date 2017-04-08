@@ -53,12 +53,30 @@ public class HttpRequestUtils {
         return new Pair(tokens[0], tokens[1]);
     }
 
+    /**
+     * queryString을 포함한 url 문자열을 리턴한다.
+     * @param requestLine
+     * @return
+     */
+    public String getFullUrl(final String requestLine) {
+        return this.getUrl(requestLine, "\\s");
+    }
+
+    /**
+     * queryString을 제외한 주소 url 문자열을 리턴한다.
+     * @param requestLine
+     * @return
+     */
     public String getUrl(final String requestLine) {
+        return this.getUrl(requestLine, "\\s|\\?");
+    }
+
+    private String getUrl(final String requestLine, final String delimiter) {
         if(requestLine == null) {
             return "";
         }
 
-        final String[] strs = requestLine.split("\\s");
+        final String[] strs = requestLine.split(delimiter);
 
         if(strs.length < 2) {
             return "";
@@ -96,14 +114,36 @@ public class HttpRequestUtils {
         return requestLineList;
     }
 
+    /**
+     * request 문자열에서 Content-Length 를 명시한 라인을 찾아 문자열 길이를 리턴한다.
+     * 만약 찾지 못한다면 -1 을 리턴한다.
+     * @param requestLineList
+     * @return
+     */
     public int getRequestContentsLength(final List<String> requestLineList) {
         final String lengthStr = requestLineList.stream()
                 .filter(l -> l.matches("Content-Length\\s*:\\s*(?:\\d+)"))
                 .findFirst()
-                .get()
+                .orElse(":-1")
                 ;
         final int length = Integer.parseInt(lengthStr.split("\\s*:\\s*")[1]);
         return length;
+    }
+
+    /**
+     * request body 를 리턴한다.
+     * @param requestUtils
+     * @param br
+     * @param requestLineList
+     * @return
+     * @throws IOException
+     */
+    public String getBody(HttpRequestUtils requestUtils, BufferedReader br, List<String> requestLineList) throws IOException {
+        final int contentLength = requestUtils.getRequestContentsLength(requestLineList);
+        if(contentLength < 0) {
+            return "";
+        }
+        return IOUtils.readData(br, contentLength);
     }
 
     public static class Pair {
