@@ -1,16 +1,15 @@
 package controller;
 
+import config.Config;
 import config.annotation.Controller;
+import model.RequestMap;
 import model.ResponseMap;
 
-import java.util.Map;
-
-@Controller(name = "/")
+@Controller(name = Config.HOME)
 public class Home implements controller.Controller{
 
     @Override
-    public ResponseMap execute(Map<String, String> getParams, Map<String, String> postParams) {
-
-        return new ResponseMap("/index.html");
+    public ResponseMap execute(final RequestMap req) {
+        return new ResponseMap(req).redirect(Config.INDEX);
     }
 }

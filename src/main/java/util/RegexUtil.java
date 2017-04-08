@@ -1,6 +1,7 @@
 package util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +28,7 @@ public class RegexUtil {
         return new ExecResult(result);
     }
 
-    static class ExecResult {
+    static public class ExecResult {
 
         List<String> result = EMPTY_LIST;
 
@@ -47,9 +48,9 @@ public class RegexUtil {
         }
 
         public List<String> list() {
-            List<String> newList = new ArrayList<>(result.size());
+            final List<String> newList = new ArrayList<>(result.size());
             newList.addAll(result);
-            return newList;
+            return Collections.unmodifiableList(newList);
         }
     }
 }

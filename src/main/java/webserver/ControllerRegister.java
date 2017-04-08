@@ -2,7 +2,7 @@ package webserver;
 
 import config.Config;
 import controller.Controller;
-import controller.Nothing;
+import controller.Default;
 import util.ReflectionUtil;
 
 import java.lang.reflect.Constructor;
@@ -15,7 +15,7 @@ import java.util.*;
 public class ControllerRegister {
 
     public static Map<String, Controller> controller = ControllerRegister.collectController();
-    private static final controller.Controller NOTHING = new Nothing();
+    private static final controller.Controller NOTHING = new Default();
 
     /**
      * Controller annotation의 name 속성으로 컨트롤러 인스턴스를 찾아 리턴한다.
@@ -56,7 +56,7 @@ public class ControllerRegister {
      */
     private static Controller getControllerInstance(final Class c) {
 
-        Controller cont = new Nothing();
+        Controller cont = new Default();
         try {
             Constructor<?> constructor = c.getConstructor(new Class[]{});
             cont = (Controller) constructor.newInstance(new Object[]{});

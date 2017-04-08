@@ -58,8 +58,8 @@ public class HttpRequestUtils {
      * @param requestLine
      * @return
      */
-    public String getFullUrl(final String requestLine) {
-        return this.getUrl(requestLine, "\\s");
+    public static String getFullUrl(final String requestLine) {
+        return getUrl(requestLine, "\\s");
     }
 
     /**
@@ -67,11 +67,11 @@ public class HttpRequestUtils {
      * @param requestLine
      * @return
      */
-    public String getUrl(final String requestLine) {
-        return this.getUrl(requestLine, "\\s|\\?");
+    public static String getUrl(final String requestLine) {
+        return getUrl(requestLine, "\\s|\\?");
     }
 
-    private String getUrl(final String requestLine, final String delimiter) {
+    private static String getUrl(final String requestLine, final String delimiter) {
         if(requestLine == null) {
             return "";
         }
@@ -103,7 +103,7 @@ public class HttpRequestUtils {
         return getKeyValue(header, ": ");
     }
 
-    public List<String> getRequestLineList(final BufferedReader br, final String line) throws IOException {
+    public static List<String> getRequestLineList(final BufferedReader br, final String line) throws IOException {
         final List<String> requestLineList = new LinkedList<>();
 
         String tempLine = line;
@@ -120,7 +120,7 @@ public class HttpRequestUtils {
      * @param requestLineList
      * @return
      */
-    public int getRequestContentsLength(final List<String> requestLineList) {
+    public static int getRequestContentsLength(final List<String> requestLineList) {
         final String lengthStr = requestLineList.stream()
                 .filter(l -> l.matches("Content-Length\\s*:\\s*(?:\\d+)"))
                 .findFirst()
@@ -132,14 +132,13 @@ public class HttpRequestUtils {
 
     /**
      * request body 를 리턴한다.
-     * @param requestUtils
      * @param br
      * @param requestLineList
      * @return
      * @throws IOException
      */
-    public String getBody(HttpRequestUtils requestUtils, BufferedReader br, List<String> requestLineList) throws IOException {
-        final int contentLength = requestUtils.getRequestContentsLength(requestLineList);
+    public static String getBody(BufferedReader br, List<String> requestLineList) throws IOException {
+        final int contentLength = HttpRequestUtils.getRequestContentsLength(requestLineList);
         if(contentLength < 0) {
             return "";
         }

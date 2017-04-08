@@ -1,16 +1,23 @@
 package model;
 
 public class User {
-    private String userId;
-    private String password;
-    private String name;
-    private String email;
+    final private String userId;
+    final private String password;
+    final private String name;
+    final private String email;
 
-    public User(String userId, String password, String name, String email) {
+    public User(final String userId, final String password, final String name, final String email) {
         this.userId = userId;
         this.password = password;
         this.name = name;
         this.email = email;
+    }
+
+    public User(final String userId, final String password) {
+        this.userId = userId;
+        this.password = password;
+        this.name = null;
+        this.email = null;
     }
 
     public String getUserId() {
